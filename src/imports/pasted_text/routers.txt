@@ -1,0 +1,156 @@
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/routers.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/main.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/api/auth.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/api/usuarios.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/api/estanques.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/api/ciclos.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/api/ciclo_estanques.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/api/biometrias.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/schema/usuario_schema.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/schema/estanque_schema.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/schema/ciclo_schema.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/schema/ciclo_estanque_schema.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/models/usuario.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/schema/biometria_schema.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/models/estanque.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/models/ciclo.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/models/ciclo_estanque.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/models/biometria.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/services/usuario_service.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/services/estanque_service.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/services/ciclo_service.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/services/ciclo_estanque_service.py)
+
+Read [](file:///c%3A/Users/luuis/GitHub/dataShrimpBack/services/biometria_service.py)
+
+PROMPT PARA FIGMA MAKE:
+Crea un prototipo funcional de frontend para un sistema web administrativo de control de cultivo de camaron. Debe reflejar estos modulos reales: autenticacion, usuarios, estanques, ciclos, ciclo-estanques y biometrias. El flujo clave es: iniciar sesion -> administrar usuarios/estanques/ciclos -> asociar estanques a un ciclo -> registrar biometria por ciclo-estanque -> consultar historiales.
+
+Estilo visual:
+- Interfaz limpia y profesional tipo dashboard.
+- Sidebar lateral con iconos, barra superior con usuario activo y acciones rapidas.
+- Tarjetas resumen, tablas con acciones, formularios en modal o pagina dedicada.
+- Colores relacionados con agua, acuicultura y tecnologia (azules, turquesas, verdes suaves).
+- Responsive, enfocado en escritorio.
+
+Navegacion global:
+- Sidebar: Dashboard, Usuarios, Estanques, Ciclos, Biometrias.
+- Topbar: nombre de usuario activo, avatar, boton cerrar sesion.
+- Desde tablas: botones Ver detalle, Editar, Eliminar, Finalizar (cuando aplique).
+- Desde detalle de ciclo: acceso a asociar estanques y ver detalle de ciclo-estanque.
+- Desde detalle de ciclo-estanque: acceso a registrar biometria y ver historial.
+
+Pantallas requeridas (10):
+
+1) Login
+- Objetivo: autenticar usuario.
+- Componentes: logo, formulario centrado, mensaje de bienvenida, fondo sutil acuatico.
+- Campos: correo, password.
+- Botones: Iniciar sesion.
+- Acciones: validacion basica, mostrar error de credenciales.
+- Navegacion: al Dashboard.
+- Datos ejemplo: correo "ana@acuicola.mx", password "********".
+
+2) Dashboard principal
+- Objetivo: vista general del sistema.
+- Componentes: tarjetas resumen, grafica simple, tabla de actividad reciente.
+- Tarjetas: Usuarios activos, Estanques activos, Ciclos activos, Biometrias del mes.
+- Tabla reciente: Biometria (fecha, ciclo, estanque, numero_muestra, peso_total_muestra_g, peso_promedio_g, registrado_por).
+- Botones: Ir a Ciclos, Ir a Biometrias.
+- Datos ejemplo: Ciclo 2026-01, Estanque Norte 1, 100, 3500 g, 35.0 g.
+
+3) Gestion de usuarios
+- Objetivo: CRUD de usuarios.
+- Componentes: tabla, buscador, filtro por rol, boton Nuevo usuario.
+- Formulario (modal o pagina): nombre, correo, rol (administrador/usuario), password.
+- Columnas tabla: id_usuario, nombre, correo, rol, creado_en, acciones.
+- Botones: Nuevo, Ver, Editar, Eliminar.
+- Acciones: crear, actualizar, eliminar.
+- Datos ejemplo: Ana Torres / ana@acuicola.mx / administrador; Luis Perez / luis@acuicola.mx / usuario.
+
+4) Gestion de estanques
+- Objetivo: CRUD de estanques.
+- Componentes: tabla, buscador, filtro por estado, boton Nuevo estanque.
+- Formulario: nombre, ubicacion, superficie_m2, estado (activo/inactivo).
+- Columnas tabla: id_estanque, nombre, ubicacion, superficie_m2, estado, creado_en, acciones.
+- Botones: Nuevo, Ver, Editar, Eliminar.
+- Datos ejemplo: Estanque Norte 1 / Granja A - Lote Norte / 1200 / activo.
+
+5) Gestion de ciclos
+- Objetivo: CRUD de ciclos de produccion.
+- Componentes: tabla, boton Nuevo ciclo, filtro por estado.
+- Formulario: nombre, fecha_inicio, fecha_fin (opcional), estado.
+- Columnas tabla: id_ciclo, nombre, fecha_inicio, fecha_fin, estado, creado_en, acciones.
+- Botones: Nuevo, Ver detalle, Editar, Finalizar, Eliminar.
+- Datos ejemplo: Ciclo 2026-01 / 2026-01-15 / (sin fecha_fin) / activo.
+
+6) Detalle de ciclo
+- Objetivo: ver informacion del ciclo y sus estanques asociados.
+- Componentes: tarjeta con datos del ciclo, tabla de ciclo-estanques, resumen rapido.
+- Campos visibles: nombre, fecha_inicio, fecha_fin, estado.
+- Tabla ciclo-estanques: id_ciclo_estanque, estanque, fecha_siembra, densidad_inicial_m2, peso_inicial_promedio_g, estado, acciones.
+- Botones: Asociar estanque, Ver ciclo-estanque, Finalizar ciclo.
+- Navegacion: hacia pantalla 7 y 10.
+- Datos ejemplo: Estanque Sur 2 / 2026-01-22 / 110 / 0.9 g / activo.
+
+7) Asociacion de estanques a un ciclo
+- Objetivo: asociar estanques a un ciclo con datos propios.
+- Componentes: formulario principal, tabla de estanques disponibles.
+- Campos: id_ciclo (preseleccionado), id_estanque (selector), fecha_siembra, densidad_inicial_m2, peso_inicial_promedio_g (opcional), estado.
+- Botones: Asociar, Cancelar.
+- Acciones: crear asociacion, validar estanque ya asociado.
+- Datos ejemplo: Ciclo 2026-01 + Estanque Norte 1 / 2026-01-20 / 120 / 0.8 g.
+
+8) Gestion de biometrias
+- Objetivo: listar y filtrar biometrias.
+- Componentes: tabla, filtros por ciclo, estanque y fecha, boton Registrar biometria.
+- Columnas tabla: id_biometria, fecha, ciclo, estanque, numero_muestra, peso_total_muestra_g, peso_promedio_g, registrado_por, acciones.
+- Botones: Registrar, Ver detalle, Editar, Eliminar.
+- Navegacion: a Registro de biometria y a Detalle de ciclo-estanque.
+- Datos ejemplo: 2026-02-10 / Ciclo 2026-01 / Estanque Norte 1 / 100 / 3500 g / 35.0 g / Ana Torres.
+
+9) Registro de biometria
+- Objetivo: capturar biometria para un ciclo-estanque.
+- Componentes: formulario con seccion de calculo.
+- Campos: id_ciclo_estanque (selector), fecha, numero_muestra, peso_total_muestra_g, observaciones (opcional).
+- Campo calculado: peso_promedio_g (solo lectura, se muestra al llenar).
+- Botones: Guardar, Cancelar.
+- Acciones: validar numero_muestra > 0 y peso_total > 0.
+- Datos ejemplo: id_ciclo_estanque 101 / 2026-02-24 / 120 / 4800 g / "Muestreo semanal".
+
+10) Detalle de ciclo-estanque con historial de biometrias
+- Objetivo: ver datos del estanque dentro del ciclo y su historial.
+- Componentes: tarjeta con datos de asociacion, grafica de tendencia, tabla de biometrias.
+- Campos visibles: ciclo, estanque, fecha_siembra, densidad_inicial_m2, peso_inicial_promedio_g, estado.
+- Tabla biometrias: fecha, numero_muestra, peso_total_muestra_g, peso_promedio_g, observaciones, registrado_por, acciones.
+- Botones: Registrar biometria, Finalizar ciclo-estanque.
+- Navegacion: a Registro de biometria y Gestion de biometrias.
+- Datos ejemplo: 2026-02-10 / 100 / 3500 g / 35.0 g / "Muestreo semanal".
+
+Requisitos extra:
+- No inventar modulos adicionales.
+- No incluir talla promedio en biometrias.
+- No mencionar tecnologia backend ni endpoints.
+- Solo camaron como especie.
+- Prototipo con interacciones clicables entre pantallas.
