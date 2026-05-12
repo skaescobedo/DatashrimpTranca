@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 export function RegistroBiometria() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { cicloEstanques, ciclos, estanques, addBiometria, currentUser } = useApp();
+  const { cicloEstanques, ciclos, estanques, addBiometria } = useApp();
 
   const defaultCE = searchParams.get('ceId') || '';
 
@@ -34,7 +34,7 @@ export function RegistroBiometria() {
     return null;
   }, [form.numero_muestra, form.peso_total_muestra_g]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -51,15 +51,18 @@ export function RegistroBiometria() {
       return;
     }
 
-    addBiometria({
-      ciclo_estanque_id: Number(form.ciclo_estanque_id),
-      fecha: form.fecha,
-      numero_muestra: Number(form.numero_muestra),
-      peso_total_muestra_g: Number(form.peso_total_muestra_g),
-      observaciones: form.observaciones,
-      registrado_por_id: currentUser?.id || 1,
-    });
-    setSuccess(true);
+    try {
+      await addBiometria({
+        ciclo_estanque_id: Number(form.ciclo_estanque_id),
+        fecha: form.fecha,
+        numero_muestra: Number(form.numero_muestra),
+        peso_total_muestra_g: Number(form.peso_total_muestra_g),
+        observaciones: form.observaciones,
+      });
+      setSuccess(true);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No fue posible registrar la biometría.');
+    }
   };
 
   const ceSeleccionado = cicloEstanques.find(ce => ce.id === Number(form.ciclo_estanque_id));

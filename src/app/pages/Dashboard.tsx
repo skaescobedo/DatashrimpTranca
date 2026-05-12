@@ -7,16 +7,8 @@ import {
 import { useApp } from '../context/AppContext';
 import { Badge } from '../components/Badge';
 
-const chartData = [
-  { semana: 'S1 Feb', peso_prom: 28.5 },
-  { semana: 'S2 Feb', peso_prom: 33.0 },
-  { semana: 'S3 Feb', peso_prom: 35.0 },
-  { semana: 'S4 Feb', peso_prom: 42.0 },
-  { semana: 'S5 Feb', peso_prom: 40.0 },
-];
-
 export function Dashboard() {
-  const { usuarios, estanques, ciclos, biometrias, cicloEstanques } = useApp();
+  const { usuarios, estanques, ciclos, biometrias, cicloEstanques, dataLoading, dataError } = useApp();
   const navigate = useNavigate();
 
   const usuariosActivos = usuarios.length;
@@ -27,6 +19,14 @@ export function Dashboard() {
   const recentBiometrias = [...biometrias]
     .sort((a, b) => b.fecha.localeCompare(a.fecha))
     .slice(0, 5);
+
+  const chartData = [...biometrias]
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+    .slice(-8)
+    .map((item) => ({
+      semana: item.fecha.slice(5),
+      peso_prom: item.peso_promedio_g,
+    }));
 
   const getCicloEstanqueInfo = (ceId: number) => {
     const ce = cicloEstanques.find(x => x.id === ceId);
@@ -75,29 +75,35 @@ export function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-slate-800" style={{ fontWeight: 600 }}>Tendencia de Peso Promedio</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Febrero 2026 — Ciclo 2026-01, Estanque Norte 1</p>
-            </div>
+               <p className="text-xs text-slate-400 mt-0.5">Últimos registros de biometría</p>
+             </div>
             <TrendingUp className="h-5 w-5 text-cyan-500" />
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="semana" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <Tooltip
-                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                formatter={(val: number) => [`${val} g`, 'Peso prom.']}
-              />
-              <Line
-                type="monotone"
-                dataKey="peso_prom"
-                stroke="#0e7490"
-                strokeWidth={2.5}
-                dot={{ fill: '#0e7490', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="semana" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                  formatter={(val: number) => [`${val} g`, 'Peso prom.']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="peso_prom"
+                  stroke="#0e7490"
+                  strokeWidth={2.5}
+                  dot={{ fill: '#0e7490', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[200px] flex items-center justify-center text-slate-400 text-sm">
+              Sin datos de biometría para graficar.
+            </div>
+          )}
         </div>
 
         {/* Quick actions */}
@@ -158,7 +164,21 @@ export function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {recentBiometrias.map(b => {
+              {dataLoading && (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">
+                    Cargando datos...
+                  </td>
+                </tr>
+              )}
+              {!dataLoading && dataError && (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-red-500 text-sm">
+                    {dataError}
+                  </td>
+                </tr>
+              )}
+              {!dataLoading && !dataError && recentBiometrias.map(b => {
                 const { ciclo, estanque } = getCicloEstanqueInfo(b.ciclo_estanque_id);
                 return (
                   <tr key={b.id} className="border-b border-slate-50 hover:bg-sky-50/50 transition-colors">
@@ -174,7 +194,7 @@ export function Dashboard() {
                   </tr>
                 );
               })}
-              {recentBiometrias.length === 0 && (
+              {!dataLoading && !dataError && recentBiometrias.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">
                     No hay biometrías registradas.

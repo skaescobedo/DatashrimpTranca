@@ -7,15 +7,17 @@ import type { Estanque } from '../types';
 
 type ModalMode = 'create' | 'edit' | 'view';
 
-const emptyForm = { nombre: '', ubicacion: '', superficie_m2: '', estado: 'activo' as 'activo' | 'inactivo' };
+const emptyForm = { nombre: '', ubicacion: '', superficie_m2: '', estado: 'activo' };
 
 export function Estanques() {
-  const { estanques, addEstanque, updateEstanque, deleteEstanque } = useApp();
+  const { estanques, addEstanque, updateEstanque, deleteEstanque, dataLoading, dataError } = useApp();
   const [search, setSearch] = useState('');
   const [filterEstado, setFilterEstado] = useState('todos');
   const [modal, setModal] = useState<{ open: boolean; mode: ModalMode; item: Estanque | null }>({ open: false, mode: 'create', item: null });
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [formError, setFormError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filtered = estanques.filter(e => {
     const matchSearch = e.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,26 +42,49 @@ export function Estanques() {
 
   const closeModal = () => setModal(m => ({ ...m, open: false }));
 
-  const handleSave = () => {
-    if (!form.nombre || !form.ubicacion || !form.superficie_m2) return;
+  const handleSave = async () => {
+    setFormError('');
+    if (!form.nombre.trim()) {
+      setFormError('El nombre es requerido.');
+      return;
+    }
+    if (!form.superficie_m2 || Number.isNaN(Number(form.superficie_m2))) {
+      setFormError('La superficie_m2 es requerida y debe ser numérica.');
+      return;
+    }
+    if (!form.estado.trim()) {
+      setFormError('El estado es requerido.');
+      return;
+    }
     const data = {
       nombre: form.nombre,
       ubicacion: form.ubicacion,
       superficie_m2: parseFloat(form.superficie_m2),
       estado: form.estado,
     };
-    if (modal.mode === 'create') {
-      addEstanque(data);
-    } else if (modal.mode === 'edit' && modal.item) {
-      updateEstanque(modal.item.id, data);
+    setActionLoading(true);
+    try {
+      if (modal.mode === 'create') {
+        await addEstanque(data);
+      } else if (modal.mode === 'edit' && modal.item) {
+        await updateEstanque(modal.item.id, data);
+      }
+      closeModal();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'No fue posible guardar el estanque.');
+    } finally {
+      setActionLoading(false);
     }
-    closeModal();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteId !== null) {
-      deleteEstanque(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteEstanque(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'No fue posible eliminar el estanque.');
+      }
     }
   };
 
@@ -113,7 +138,13 @@ export function Estanques() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(e => (
+              {dataLoading && (
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">Cargando datos...</td></tr>
+              )}
+              {!dataLoading && dataError && (
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-red-500 text-sm">{dataError}</td></tr>
+              )}
+              {!dataLoading && !dataError && filtered.map(e => (
                 <tr key={e.id} className="border-b border-slate-50 hover:bg-sky-50/50 transition-colors">
                   <td className="px-5 py-3.5 text-slate-400 text-xs">#{e.id}</td>
                   <td className="px-5 py-3.5 text-slate-800" style={{ fontWeight: 500 }}>{e.nombre}</td>
@@ -136,7 +167,7 @@ export function Estanques() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!dataLoading && !dataError && filtered.length === 0 && (
                 <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">No se encontraron estanques.</td></tr>
               )}
             </tbody>
@@ -182,19 +213,20 @@ export function Estanques() {
           </div>
           <div>
             <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Estado</label>
-            <select
-              value={form.estado}
-              onChange={e => setForm(f => ({ ...f, estado: e.target.value as 'activo' | 'inactivo' }))}
-              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
-            >
+              <select
+                value={form.estado}
+                onChange={e => setForm(f => ({ ...f, estado: e.target.value }))}
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              >
               <option value="activo">Activo</option>
               <option value="inactivo">Inactivo</option>
             </select>
           </div>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-3 pt-2">
-            <button onClick={closeModal} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
-            <button onClick={handleSave} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#0e7490', fontWeight: 500 }}>
-              {modal.mode === 'create' ? 'Crear estanque' : 'Guardar cambios'}
+            <button onClick={closeModal} disabled={actionLoading} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
+            <button onClick={handleSave} disabled={actionLoading} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#0e7490', fontWeight: 500 }}>
+              {actionLoading ? 'Guardando...' : modal.mode === 'create' ? 'Crear estanque' : 'Guardar cambios'}
             </button>
           </div>
         </div>

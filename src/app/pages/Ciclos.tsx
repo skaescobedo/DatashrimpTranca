@@ -8,16 +8,18 @@ import type { Ciclo } from '../types';
 
 type ModalMode = 'create' | 'edit';
 
-const emptyForm = { nombre: '', fecha_inicio: '', fecha_fin: '', estado: 'activo' as 'activo' | 'finalizado' };
+const emptyForm = { nombre: '', fecha_inicio: '', fecha_fin: '', estado: 'activo' };
 
 export function Ciclos() {
-  const { ciclos, addCiclo, updateCiclo, deleteCiclo, finalizarCiclo } = useApp();
+  const { ciclos, addCiclo, updateCiclo, deleteCiclo, finalizarCiclo, dataLoading, dataError } = useApp();
   const navigate = useNavigate();
   const [filterEstado, setFilterEstado] = useState('todos');
   const [modal, setModal] = useState<{ open: boolean; mode: ModalMode; item: Ciclo | null }>({ open: false, mode: 'create', item: null });
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [finalizarId, setFinalizarId] = useState<number | null>(null);
+  const [formError, setFormError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filtered = ciclos.filter(c => filterEstado === 'todos' || c.estado === filterEstado);
 
@@ -33,28 +35,61 @@ export function Ciclos() {
 
   const closeModal = () => setModal(m => ({ ...m, open: false }));
 
-  const handleSave = () => {
-    if (!form.nombre || !form.fecha_inicio) return;
+  const handleSave = async () => {
+    setFormError('');
+    if (!form.nombre.trim()) {
+      setFormError('El nombre es requerido.');
+      return;
+    }
+    if (!form.fecha_inicio) {
+      setFormError('La fecha_inicio es requerida.');
+      return;
+    }
+    if (!form.estado.trim()) {
+      setFormError('El estado es requerido.');
+      return;
+    }
     const data = {
       nombre: form.nombre,
       fecha_inicio: form.fecha_inicio,
       fecha_fin: form.fecha_fin || null,
       estado: form.estado,
     };
-    if (modal.mode === 'create') {
-      addCiclo(data);
-    } else if (modal.mode === 'edit' && modal.item) {
-      updateCiclo(modal.item.id, data);
+    setActionLoading(true);
+    try {
+      if (modal.mode === 'create') {
+        await addCiclo(data);
+      } else if (modal.mode === 'edit' && modal.item) {
+        await updateCiclo(modal.item.id, data);
+      }
+      closeModal();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'No fue posible guardar el ciclo.');
+    } finally {
+      setActionLoading(false);
     }
-    closeModal();
   };
 
-  const handleDelete = () => {
-    if (deleteId !== null) { deleteCiclo(deleteId); setDeleteId(null); }
+  const handleDelete = async () => {
+    if (deleteId !== null) {
+      try {
+        await deleteCiclo(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'No fue posible eliminar el ciclo.');
+      }
+    }
   };
 
-  const handleFinalizar = () => {
-    if (finalizarId !== null) { finalizarCiclo(finalizarId); setFinalizarId(null); }
+  const handleFinalizar = async () => {
+    if (finalizarId !== null) {
+      try {
+        await finalizarCiclo(finalizarId);
+        setFinalizarId(null);
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'No fue posible finalizar el ciclo.');
+      }
+    }
   };
 
   return (
@@ -98,7 +133,13 @@ export function Ciclos() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(c => (
+              {dataLoading && (
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">Cargando datos...</td></tr>
+              )}
+              {!dataLoading && dataError && (
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-red-500 text-sm">{dataError}</td></tr>
+              )}
+              {!dataLoading && !dataError && filtered.map(c => (
                 <tr key={c.id} className="border-b border-slate-50 hover:bg-sky-50/50 transition-colors">
                   <td className="px-5 py-3.5 text-slate-400 text-xs">#{c.id}</td>
                   <td className="px-5 py-3.5 text-slate-800" style={{ fontWeight: 500 }}>{c.nombre}</td>
@@ -134,7 +175,7 @@ export function Ciclos() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!dataLoading && !dataError && filtered.length === 0 && (
                 <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">No se encontraron ciclos.</td></tr>
               )}
             </tbody>
@@ -174,19 +215,20 @@ export function Ciclos() {
           </div>
           <div>
             <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Estado</label>
-            <select
-              value={form.estado}
-              onChange={e => setForm(f => ({ ...f, estado: e.target.value as 'activo' | 'finalizado' }))}
-              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
-            >
+             <select
+               value={form.estado}
+               onChange={e => setForm(f => ({ ...f, estado: e.target.value }))}
+               className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+             >
               <option value="activo">Activo</option>
               <option value="finalizado">Finalizado</option>
             </select>
           </div>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-3 pt-2">
-            <button onClick={closeModal} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
-            <button onClick={handleSave} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#0e7490', fontWeight: 500 }}>
-              {modal.mode === 'create' ? 'Crear ciclo' : 'Guardar cambios'}
+            <button onClick={closeModal} disabled={actionLoading} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
+            <button onClick={handleSave} disabled={actionLoading} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#0e7490', fontWeight: 500 }}>
+              {actionLoading ? 'Guardando...' : modal.mode === 'create' ? 'Crear ciclo' : 'Guardar cambios'}
             </button>
           </div>
         </div>

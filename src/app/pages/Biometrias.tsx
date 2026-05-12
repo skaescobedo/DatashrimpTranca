@@ -6,7 +6,7 @@ import { Modal } from '../components/Modal';
 import type { Biometria } from '../types';
 
 export function Biometrias() {
-  const { biometrias, cicloEstanques, ciclos, estanques, usuarios, deleteBiometria, updateBiometria, currentUser } = useApp();
+  const { biometrias, cicloEstanques, ciclos, estanques, usuarios, deleteBiometria, updateBiometria, dataLoading, dataError } = useApp();
   const navigate = useNavigate();
 
   const [filterCiclo, setFilterCiclo] = useState('todos');
@@ -15,6 +15,7 @@ export function Biometrias() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editModal, setEditModal] = useState<{ open: boolean; item: Biometria | null }>({ open: false, item: null });
   const [editForm, setEditForm] = useState({ fecha: '', numero_muestra: '', peso_total_muestra_g: '', observaciones: '' });
+  const [actionError, setActionError] = useState('');
 
   const getCEInfo = (ceId: number) => {
     const ce = cicloEstanques.find(x => x.id === ceId);
@@ -49,19 +50,35 @@ export function Biometrias() {
     setEditModal({ open: true, item: b });
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!editModal.item) return;
-    updateBiometria(editModal.item.id, {
-      fecha: editForm.fecha,
-      numero_muestra: Number(editForm.numero_muestra),
-      peso_total_muestra_g: Number(editForm.peso_total_muestra_g),
-      observaciones: editForm.observaciones,
-    });
-    setEditModal({ open: false, item: null });
+    if (!editForm.fecha || Number(editForm.numero_muestra) <= 0 || Number(editForm.peso_total_muestra_g) <= 0) {
+      setActionError('Verifica fecha, número de muestra y peso total.');
+      return;
+    }
+    try {
+      await updateBiometria(editModal.item.id, {
+        fecha: editForm.fecha,
+        numero_muestra: Number(editForm.numero_muestra),
+        peso_total_muestra_g: Number(editForm.peso_total_muestra_g),
+        observaciones: editForm.observaciones,
+      });
+      setEditModal({ open: false, item: null });
+      setActionError('');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'No fue posible actualizar biometría.');
+    }
   };
 
-  const handleDelete = () => {
-    if (deleteId !== null) { deleteBiometria(deleteId); setDeleteId(null); }
+  const handleDelete = async () => {
+    if (deleteId !== null) {
+      try {
+        await deleteBiometria(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : 'No fue posible eliminar biometría.');
+      }
+    }
   };
 
   const getCEById = (ceId: number) => cicloEstanques.find(ce => ce.id === ceId);
@@ -132,7 +149,13 @@ export function Biometrias() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(b => {
+              {dataLoading && (
+                <tr><td colSpan={9} className="px-5 py-8 text-center text-slate-400 text-sm">Cargando datos...</td></tr>
+              )}
+              {!dataLoading && dataError && (
+                <tr><td colSpan={9} className="px-5 py-8 text-center text-red-500 text-sm">{dataError}</td></tr>
+              )}
+              {!dataLoading && !dataError && filtered.map(b => {
                 const { cicloNombre, estanqueNombre } = getCEInfo(b.ciclo_estanque_id);
                 const ce = getCEById(b.ciclo_estanque_id);
                 return (
@@ -169,13 +192,14 @@ export function Biometrias() {
                   </tr>
                 );
               })}
-              {filtered.length === 0 && (
+              {!dataLoading && !dataError && filtered.length === 0 && (
                 <tr><td colSpan={9} className="px-5 py-8 text-center text-slate-400 text-sm">No se encontraron biometrías.</td></tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
+      {actionError && <div className="text-sm text-red-600">{actionError}</div>}
 
       {/* Edit Modal */}
       <Modal open={editModal.open} onClose={() => setEditModal({ open: false, item: null })} title="Editar biometría">

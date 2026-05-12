@@ -2,7 +2,7 @@ export interface Usuario {
   id: number;
   nombre: string;
   correo: string;
-  rol: 'administrador' | 'usuario';
+  rol: string;
   creado_en: string;
 }
 
@@ -11,7 +11,7 @@ export interface Estanque {
   nombre: string;
   ubicacion: string;
   superficie_m2: number;
-  estado: 'activo' | 'inactivo';
+  estado: string;
   creado_en: string;
 }
 
@@ -20,7 +20,7 @@ export interface Ciclo {
   nombre: string;
   fecha_inicio: string;
   fecha_fin: string | null;
-  estado: 'activo' | 'finalizado';
+  estado: string;
   creado_en: string;
 }
 
@@ -31,7 +31,7 @@ export interface CicloEstanque {
   fecha_siembra: string;
   densidad_inicial_m2: number;
   peso_inicial_promedio_g: number;
-  estado: 'activo' | 'finalizado';
+  estado: string;
 }
 
 export interface Biometria {

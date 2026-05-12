@@ -17,6 +17,7 @@ export function CicloDetalle() {
   const [finalizarCicloModal, setFinalizarCicloModal] = useState(false);
   const [finalizarCEId, setFinalizarCEId] = useState<number | null>(null);
   const [deleteCEId, setDeleteCEId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState('');
 
   if (!ciclo) {
     return (
@@ -29,22 +30,34 @@ export function CicloDetalle() {
 
   const getEstanque = (eid: number) => estanques.find(e => e.id === eid);
 
-  const handleFinalizarCiclo = () => {
-    finalizarCiclo(id);
-    setFinalizarCicloModal(false);
-  };
-
-  const handleFinalizarCE = () => {
-    if (finalizarCEId !== null) {
-      finalizarCicloEstanque(finalizarCEId);
-      setFinalizarCEId(null);
+  const handleFinalizarCiclo = async () => {
+    try {
+      await finalizarCiclo(id);
+      setFinalizarCicloModal(false);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'No fue posible finalizar el ciclo.');
     }
   };
 
-  const handleDeleteCE = () => {
+  const handleFinalizarCE = async () => {
+    if (finalizarCEId !== null) {
+      try {
+        await finalizarCicloEstanque(finalizarCEId);
+        setFinalizarCEId(null);
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : 'No fue posible finalizar el ciclo-estanque.');
+      }
+    }
+  };
+
+  const handleDeleteCE = async () => {
     if (deleteCEId !== null) {
-      deleteCicloEstanque(deleteCEId);
-      setDeleteCEId(null);
+      try {
+        await deleteCicloEstanque(deleteCEId);
+        setDeleteCEId(null);
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : 'No fue posible eliminar la asociación.');
+      }
     }
   };
 
@@ -87,6 +100,10 @@ export function CicloDetalle() {
           ))}
         </div>
       </div>
+
+      {actionError && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{actionError}</div>
+      )}
 
       {/* CicloEstanques table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">

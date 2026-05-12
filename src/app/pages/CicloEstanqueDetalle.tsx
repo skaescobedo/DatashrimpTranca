@@ -26,6 +26,7 @@ export function CicloEstanqueDetalle() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editModal, setEditModal] = useState<{ open: boolean; item: Biometria | null }>({ open: false, item: null });
   const [editForm, setEditForm] = useState({ fecha: '', numero_muestra: '', peso_total_muestra_g: '', observaciones: '' });
+  const [actionError, setActionError] = useState('');
 
   if (!ce) {
     return (
@@ -48,24 +49,44 @@ export function CicloEstanqueDetalle() {
     setEditModal({ open: true, item: b });
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!editModal.item) return;
-    updateBiometria(editModal.item.id, {
-      fecha: editForm.fecha,
-      numero_muestra: Number(editForm.numero_muestra),
-      peso_total_muestra_g: Number(editForm.peso_total_muestra_g),
-      observaciones: editForm.observaciones,
-    });
-    setEditModal({ open: false, item: null });
+    if (!editForm.fecha || Number(editForm.numero_muestra) <= 0 || Number(editForm.peso_total_muestra_g) <= 0) {
+      setActionError('Verifica fecha, número de muestra y peso total.');
+      return;
+    }
+    try {
+      await updateBiometria(editModal.item.id, {
+        fecha: editForm.fecha,
+        numero_muestra: Number(editForm.numero_muestra),
+        peso_total_muestra_g: Number(editForm.peso_total_muestra_g),
+        observaciones: editForm.observaciones,
+      });
+      setEditModal({ open: false, item: null });
+      setActionError('');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'No fue posible actualizar la biometría.');
+    }
   };
 
-  const handleDelete = () => {
-    if (deleteId !== null) { deleteBiometria(deleteId); setDeleteId(null); }
+  const handleDelete = async () => {
+    if (deleteId !== null) {
+      try {
+        await deleteBiometria(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : 'No fue posible eliminar la biometría.');
+      }
+    }
   };
 
-  const handleFinalizar = () => {
-    finalizarCicloEstanque(id);
-    setFinalizarModal(false);
+  const handleFinalizar = async () => {
+    try {
+      await finalizarCicloEstanque(id);
+      setFinalizarModal(false);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'No fue posible finalizar el ciclo-estanque.');
+    }
   };
 
   const chartData = ceBiometrias.map(b => ({
@@ -224,6 +245,7 @@ export function CicloEstanqueDetalle() {
           </table>
         </div>
       </div>
+      {actionError && <div className="text-sm text-red-600">{actionError}</div>}
 
       {/* Finalizar modal */}
       <Modal open={finalizarModal} onClose={() => setFinalizarModal(false)} title="Finalizar ciclo-estanque" size="sm">

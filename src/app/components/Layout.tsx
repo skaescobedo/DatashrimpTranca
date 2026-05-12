@@ -15,9 +15,17 @@ const navItems = [
 ];
 
 export function Layout() {
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, authLoading } = useApp();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-sky-50 text-slate-500">
+        Validando sesión...
+      </div>
+    );
+  }
 
   if (!currentUser) return <Navigate to="/login" />;
 

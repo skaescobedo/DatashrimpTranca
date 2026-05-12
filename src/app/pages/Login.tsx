@@ -4,14 +4,15 @@ import { Fish, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export function Login() {
-  const { login, currentUser } = useApp();
+  const { login, currentUser, authLoading, authError } = useApp();
   const navigate = useNavigate();
-  const [correo, setCorreo] = useState('ana@acuicola.mx');
+  const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   if (currentUser) return <Navigate to="/dashboard" />;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,12 +23,11 @@ export function Login() {
       return;
     }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    const ok = login(correo, password);
+    const ok = await login(correo, password);
     if (ok) {
       navigate('/dashboard');
     } else {
-      setError('Credenciales incorrectas. Inténtalo de nuevo.');
+      setError(authError || 'Credenciales incorrectas. Inténtalo de nuevo.');
     }
     setLoading(false);
   };
@@ -152,13 +152,8 @@ export function Login() {
               </button>
             </form>
 
-            <div
-              className="mt-5 p-3 rounded-xl text-xs text-slate-500"
-              style={{ backgroundColor: '#f0f9ff' }}
-            >
-              <p className="font-medium text-slate-600 mb-1">Datos de prueba:</p>
-              <p>📧 ana@acuicola.mx</p>
-              <p>🔑 cualquier contraseña (4+ caracteres)</p>
+            <div className="mt-5 p-3 rounded-xl text-xs text-slate-500" style={{ backgroundColor: '#f0f9ff' }}>
+              Accede con un usuario real registrado en la API.
             </div>
           </div>
         </div>

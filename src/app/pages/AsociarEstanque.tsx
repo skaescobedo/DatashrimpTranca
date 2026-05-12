@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 export function AsociarEstanque() {
   const { cicloId } = useParams<{ cicloId: string }>();
   const navigate = useNavigate();
-  const { ciclos, estanques, cicloEstanques, addCicloEstanque, currentUser } = useApp();
+  const { ciclos, estanques, cicloEstanques, addCicloEstanque } = useApp();
 
   const id = Number(cicloId);
   const ciclo = ciclos.find(c => c.id === id);
@@ -34,12 +34,20 @@ export function AsociarEstanque() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!form.estanque_id || !form.fecha_siembra || !form.densidad_inicial_m2) {
       setError('Por favor completa todos los campos requeridos.');
+      return;
+    }
+    if (Number(form.densidad_inicial_m2) <= 0 || Number.isNaN(Number(form.densidad_inicial_m2))) {
+      setError('La densidad_inicial_m2 es requerida y debe ser numérica.');
+      return;
+    }
+    if (form.peso_inicial_promedio_g && Number.isNaN(Number(form.peso_inicial_promedio_g))) {
+      setError('El peso_inicial_promedio_g debe ser numérico.');
       return;
     }
 
@@ -51,15 +59,19 @@ export function AsociarEstanque() {
       return;
     }
 
-    addCicloEstanque({
-      ciclo_id: id,
-      estanque_id: estId,
-      fecha_siembra: form.fecha_siembra,
-      densidad_inicial_m2: parseFloat(form.densidad_inicial_m2),
-      peso_inicial_promedio_g: form.peso_inicial_promedio_g ? parseFloat(form.peso_inicial_promedio_g) : 0,
-      estado: form.estado,
-    });
-    setSuccess(true);
+    try {
+      await addCicloEstanque({
+        ciclo_id: id,
+        estanque_id: estId,
+        fecha_siembra: form.fecha_siembra,
+        densidad_inicial_m2: parseFloat(form.densidad_inicial_m2),
+        peso_inicial_promedio_g: form.peso_inicial_promedio_g ? parseFloat(form.peso_inicial_promedio_g) : 0,
+        estado: form.estado,
+      });
+      setSuccess(true);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'No fue posible asociar el estanque.');
+    }
   };
 
   if (success) {

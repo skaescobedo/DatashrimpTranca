@@ -7,15 +7,17 @@ import type { Usuario } from '../types';
 
 type ModalMode = 'create' | 'edit' | 'view';
 
-const emptyForm = { nombre: '', correo: '', rol: 'usuario' as 'administrador' | 'usuario', password: '' };
+const emptyForm = { nombre: '', correo: '', rol: 'usuario', password: '' };
 
 export function Usuarios() {
-  const { usuarios, addUsuario, updateUsuario, deleteUsuario, currentUser } = useApp();
+  const { usuarios, addUsuario, updateUsuario, deleteUsuario, currentUser, dataLoading, dataError } = useApp();
   const [search, setSearch] = useState('');
   const [filterRol, setFilterRol] = useState('todos');
   const [modal, setModal] = useState<{ open: boolean; mode: ModalMode; user: Usuario | null }>({ open: false, mode: 'create', user: null });
   const [form, setForm] = useState(emptyForm);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [formError, setFormError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filtered = usuarios.filter(u => {
     const matchSearch = u.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,21 +42,54 @@ export function Usuarios() {
 
   const closeModal = () => setModal(m => ({ ...m, open: false }));
 
-  const handleSave = () => {
-    if (!form.nombre || !form.correo) return;
-    if (modal.mode === 'create') {
-      addUsuario({ nombre: form.nombre, correo: form.correo, rol: form.rol });
-    } else if (modal.mode === 'edit' && modal.user) {
-      updateUsuario(modal.user.id, { nombre: form.nombre, correo: form.correo, rol: form.rol });
+  const handleSave = async () => {
+    setFormError('');
+    if (!form.nombre.trim()) {
+      setFormError('El nombre es requerido.');
+      return;
     }
-    closeModal();
+    if (!form.correo.trim()) {
+      setFormError('El correo es requerido.');
+      return;
+    }
+    if (!form.rol.trim()) {
+      setFormError('El rol es requerido.');
+      return;
+    }
+    if (modal.mode === 'create' && !form.password.trim()) {
+      setFormError('La contraseña es requerida para crear usuario.');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      if (modal.mode === 'create') {
+        await addUsuario({ nombre: form.nombre, correo: form.correo, rol: form.rol, password: form.password });
+      } else if (modal.mode === 'edit' && modal.user) {
+        await updateUsuario(modal.user.id, {
+          nombre: form.nombre,
+          correo: form.correo,
+          rol: form.rol,
+          ...(form.password ? { password: form.password } : {}),
+        });
+      }
+      closeModal();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'No fue posible guardar el usuario.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const confirmDelete = (id: number) => setDeleteId(id);
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteId !== null) {
-      deleteUsuario(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteUsuario(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'No fue posible eliminar el usuario.');
+      }
     }
   };
 
@@ -108,7 +143,13 @@ export function Usuarios() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(u => (
+              {dataLoading && (
+                <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400 text-sm">Cargando datos...</td></tr>
+              )}
+              {!dataLoading && dataError && (
+                <tr><td colSpan={6} className="px-5 py-8 text-center text-red-500 text-sm">{dataError}</td></tr>
+              )}
+              {!dataLoading && !dataError && filtered.map(u => (
                 <tr key={u.id} className="border-b border-slate-50 hover:bg-sky-50/50 transition-colors">
                   <td className="px-5 py-3.5 text-slate-400 text-xs">#{u.id}</td>
                   <td className="px-5 py-3.5">
@@ -145,7 +186,7 @@ export function Usuarios() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!dataLoading && !dataError && filtered.length === 0 && (
                 <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400 text-sm">No se encontraron usuarios.</td></tr>
               )}
             </tbody>
@@ -181,11 +222,11 @@ export function Usuarios() {
           </div>
           <div>
             <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Rol</label>
-            <select
-              value={form.rol}
-              onChange={e => setForm(f => ({ ...f, rol: e.target.value as 'administrador' | 'usuario' }))}
-              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
-            >
+              <select
+                value={form.rol}
+                onChange={e => setForm(f => ({ ...f, rol: e.target.value }))}
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              >
               <option value="usuario">Usuario</option>
               <option value="administrador">Administrador</option>
             </select>
@@ -202,19 +243,22 @@ export function Usuarios() {
               />
             </div>
           )}
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-3 pt-2">
             <button
               onClick={closeModal}
+              disabled={actionLoading}
               className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
+              disabled={actionLoading}
               className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors"
               style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
             >
-              {modal.mode === 'create' ? 'Crear usuario' : 'Guardar cambios'}
+              {actionLoading ? 'Guardando...' : modal.mode === 'create' ? 'Crear usuario' : 'Guardar cambios'}
             </button>
           </div>
         </div>
