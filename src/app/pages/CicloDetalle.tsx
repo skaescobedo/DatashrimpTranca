@@ -67,7 +67,7 @@ export function CicloDetalle() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate('/ciclos')}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           Volver a ciclos

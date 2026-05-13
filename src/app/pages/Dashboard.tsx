@@ -111,7 +111,7 @@ export function Dashboard() {
           <h3 className="text-slate-800" style={{ fontWeight: 600 }}>Acciones rápidas</h3>
           <button
             onClick={() => navigate('/ciclos')}
-            className="flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all hover:opacity-90 text-white"
+            className="flex items-center cursor-pointer justify-between px-4 py-3 rounded-xl text-sm transition-all hover:opacity-90 text-white"
             style={{ backgroundColor: '#0e7490' }}
           >
             <span style={{ fontWeight: 500 }}>Ir a Ciclos</span>
@@ -119,7 +119,7 @@ export function Dashboard() {
           </button>
           <button
             onClick={() => navigate('/biometrias')}
-            className="flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all hover:opacity-90 text-white"
+            className="flex items-center cursor-pointer justify-between px-4 py-3 rounded-xl text-sm transition-all hover:opacity-90 text-white"
             style={{ backgroundColor: '#059669' }}
           >
             <span style={{ fontWeight: 500 }}>Ir a Biometrías</span>
@@ -127,14 +127,14 @@ export function Dashboard() {
           </button>
           <button
             onClick={() => navigate('/estanques')}
-            className="flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all border border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="flex items-center cursor-pointer justify-between px-4 py-3 rounded-xl text-sm transition-all border border-slate-200 text-slate-700 hover:bg-slate-50"
           >
             <span style={{ fontWeight: 500 }}>Ver Estanques</span>
             <ArrowRight className="h-4 w-4" />
           </button>
           <button
             onClick={() => navigate('/usuarios')}
-            className="flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all border border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="flex items-center cursor-pointer justify-between px-4 py-3 rounded-xl text-sm transition-all border border-slate-200 text-slate-700 hover:bg-slate-50"
           >
             <span style={{ fontWeight: 500 }}>Gestionar Usuarios</span>
             <ArrowRight className="h-4 w-4" />
@@ -148,7 +148,7 @@ export function Dashboard() {
           <h3 className="text-slate-800" style={{ fontWeight: 600 }}>Biometrías recientes</h3>
           <button
             onClick={() => navigate('/biometrias')}
-            className="text-sm flex items-center gap-1 hover:underline"
+            className="text-sm flex cursor-pointer items-center gap-1 hover:underline"
             style={{ color: '#0e7490' }}
           >
             Ver todas <ArrowRight className="h-3.5 w-3.5" />

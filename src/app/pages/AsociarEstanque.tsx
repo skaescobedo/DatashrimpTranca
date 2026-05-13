@@ -29,7 +29,7 @@ export function AsociarEstanque() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-slate-500">Ciclo no encontrado.</p>
-        <button onClick={() => navigate('/ciclos')} className="text-cyan-600 hover:underline text-sm">Volver a ciclos</button>
+        <button onClick={() => navigate('/ciclos')} className="text-cyan-600 hover:underline text-sm cursor-pointer">Volver a ciclos</button>
       </div>
     );
   }
@@ -84,14 +84,16 @@ export function AsociarEstanque() {
         <div className="flex gap-3">
           <button
             onClick={() => navigate(`/ciclos/${id}`)}
-            className="px-5 py-2.5 rounded-xl text-white text-sm"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0a5a6f')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0e7490')}
+            className="px-5 py-2.5 rounded-xl text-white text-sm cursor-pointer transition-colors"
             style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
           >
             Ver ciclo
           </button>
           <button
             onClick={() => { setSuccess(false); setForm({ estanque_id: '', fecha_siembra: '', densidad_inicial_m2: '', peso_inicial_promedio_g: '', estado: 'activo' }); }}
-            className="px-5 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50"
+            className="px-5 py-2.5 rounded-xl bg-white text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
           >
             Asociar otro
           </button>
@@ -101,11 +103,11 @@ export function AsociarEstanque() {
   }
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 max-w-4xl mx-auto">
       {/* Back */}
       <button
         onClick={() => navigate(`/ciclos/${id}`)}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
         Volver al detalle del ciclo
@@ -196,7 +198,9 @@ export function AsociarEstanque() {
             </div>
 
             <div>
-              <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Estado</label>
+              <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+                Estado <span className="text-red-400">*</span>
+              </label>
               <select
                 value={form.estado}
                 onChange={e => setForm(f => ({ ...f, estado: e.target.value as 'activo' | 'finalizado' }))}
@@ -218,13 +222,13 @@ export function AsociarEstanque() {
               <button
                 type="button"
                 onClick={() => navigate(`/ciclos/${id}`)}
-                className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors"
+                className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors cursor-pointer"
                 style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
               >
                 Asociar estanque

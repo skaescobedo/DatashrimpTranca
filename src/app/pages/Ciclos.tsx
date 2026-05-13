@@ -101,7 +101,7 @@ export function Ciclos() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm hover:opacity-90 transition-all"
+          className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm hover:opacity-90 transition-all"
           style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
         >
           <Plus className="h-4 w-4" /> Nuevo ciclo
@@ -146,29 +146,29 @@ export function Ciclos() {
                   <td className="px-5 py-3.5 text-slate-600">{c.fecha_inicio}</td>
                   <td className="px-5 py-3.5 text-slate-500">{c.fecha_fin || <span className="text-slate-300">—</span>}</td>
                   <td className="px-5 py-3.5"><Badge status={c.estado} /></td>
-                  <td className="px-5 py-3.5 text-slate-500">{c.creado_en}</td>
+                  <td className="px-5 py-3.5 text-slate-500">{c.creado_en.split('T')[0]} {c.creado_en.split('T')[1]?.slice(0, 5)}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => navigate(`/ciclos/${c.id}`)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
+                        className="p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
                         title="Ver detalle"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
+                      <button onClick={() => openEdit(c)} className="p-1.5 cursor-pointer rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
                         <Pencil className="h-4 w-4" />
                       </button>
                       {c.estado === 'activo' && (
                         <button
                           onClick={() => setFinalizarId(c.id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          className="p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                           title="Finalizar ciclo"
                         >
                           <CheckCircle className="h-4 w-4" />
                         </button>
                       )}
-                      <button onClick={() => setDeleteId(c.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                      <button onClick={() => setDeleteId(c.id)} className="p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -185,9 +185,9 @@ export function Ciclos() {
 
       {/* Create/Edit Modal */}
       <Modal open={modal.open} onClose={closeModal} title={modal.mode === 'create' ? 'Nuevo ciclo' : 'Editar ciclo'}>
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Nombre del ciclo</label>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Nombre del ciclo <span className="text-red-400">*</span></label>
             <input
               value={form.nombre}
               onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
@@ -196,7 +196,7 @@ export function Ciclos() {
             />
           </div>
           <div>
-            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Fecha de inicio</label>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Fecha de inicio <span className="text-red-400">*</span></label>
             <input
               type="date"
               value={form.fecha_inicio}
@@ -214,7 +214,7 @@ export function Ciclos() {
             />
           </div>
           <div>
-            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Estado</label>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Estado <span className="text-red-400">*</span></label>
              <select
                value={form.estado}
                onChange={e => setForm(f => ({ ...f, estado: e.target.value }))}
@@ -224,10 +224,25 @@ export function Ciclos() {
               <option value="finalizado">Finalizado</option>
             </select>
           </div>
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {formError && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100">
+              <p className="text-sm text-red-600">{formError}</p>
+            </div>
+          )}
           <div className="flex gap-3 pt-2">
-            <button onClick={closeModal} disabled={actionLoading} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
-            <button onClick={handleSave} disabled={actionLoading} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#0e7490', fontWeight: 500 }}>
+            <button
+              onClick={closeModal}
+              disabled={actionLoading}
+              className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={actionLoading}
+              className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors cursor-pointer"
+              style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
+            >
               {actionLoading ? 'Guardando...' : modal.mode === 'create' ? 'Crear ciclo' : 'Guardar cambios'}
             </button>
           </div>
@@ -238,8 +253,19 @@ export function Ciclos() {
       <Modal open={deleteId !== null} onClose={() => setDeleteId(null)} title="Confirmar eliminación" size="sm">
         <p className="text-sm text-slate-600 mb-5">¿Estás seguro de que deseas eliminar este ciclo?</p>
         <div className="flex gap-3">
-          <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
-          <button onClick={handleDelete} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#dc2626', fontWeight: 500 }}>Eliminar</button>
+          <button
+            onClick={() => setDeleteId(null)}
+            className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleDelete}
+            className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors cursor-pointer"
+            style={{ backgroundColor: '#dc2626', fontWeight: 500 }}
+          >
+            Eliminar
+          </button>
         </div>
       </Modal>
 
@@ -247,8 +273,19 @@ export function Ciclos() {
       <Modal open={finalizarId !== null} onClose={() => setFinalizarId(null)} title="Finalizar ciclo" size="sm">
         <p className="text-sm text-slate-600 mb-5">¿Confirmas que deseas finalizar este ciclo? Se registrará la fecha de hoy como fecha de fin.</p>
         <div className="flex gap-3">
-          <button onClick={() => setFinalizarId(null)} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
-          <button onClick={handleFinalizar} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#059669', fontWeight: 500 }}>Finalizar</button>
+          <button
+            onClick={() => setFinalizarId(null)}
+            className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleFinalizar}
+            className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors cursor-pointer"
+            style={{ backgroundColor: '#059669', fontWeight: 500 }}
+          >
+            Finalizar
+          </button>
         </div>
       </Modal>
     </div>

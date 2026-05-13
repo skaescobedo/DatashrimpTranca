@@ -244,6 +244,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       fecha: b.fecha,
       numero_muestra: b.numero_muestra,
       peso_total_muestra_g: b.peso_total_muestra_g,
+      agua_temperatura: b.agua_temperatura,
+      agua_salinidad: b.agua_salinidad,
+      agua_oxigeno: b.agua_oxigeno,
       observaciones: b.observaciones,
     });
     setBiometrias((prev) => [...prev, created]);
@@ -255,6 +258,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       fecha: b.fecha,
       numero_muestra: b.numero_muestra,
       peso_total_muestra_g: b.peso_total_muestra_g,
+      agua_temperatura: b.agua_temperatura,
+      agua_salinidad: b.agua_salinidad,
+      agua_oxigeno: b.agua_oxigeno,
       observaciones: b.observaciones,
     });
     setBiometrias((prev) => prev.map((item) => (item.id === id ? updated : item)));

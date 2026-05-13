@@ -43,6 +43,9 @@ export interface BackendBiometria {
   numero_muestra: number;
   peso_total_muestra_g: number | string;
   peso_promedio_g: number | string;
+  agua_temperatura: number | string | null;
+  agua_salinidad: number | string | null;
+  agua_oxigeno: number | string | null;
   observaciones: string | null;
   registrado_por: number;
   creado_en: string;
@@ -106,6 +109,9 @@ export function mapBiometria(item: BackendBiometria): Biometria {
     numero_muestra: item.numero_muestra,
     peso_total_muestra_g: toNumber(item.peso_total_muestra_g),
     peso_promedio_g: toNumber(item.peso_promedio_g),
+    agua_temperatura: toNumber(item.agua_temperatura),
+    agua_salinidad: toNumber(item.agua_salinidad),
+    agua_oxigeno: toNumber(item.agua_oxigeno),
     observaciones: item.observaciones || '',
     registrado_por_id: item.registrado_por,
   };

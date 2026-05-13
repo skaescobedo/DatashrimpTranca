@@ -41,6 +41,9 @@ export interface Biometria {
   numero_muestra: number;
   peso_total_muestra_g: number;
   peso_promedio_g: number;
+  agua_temperatura: number;
+  agua_salinidad: number;
+  agua_oxigeno: number;
   observaciones: string;
   registrado_por_id: number;
 }

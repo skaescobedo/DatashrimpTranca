@@ -89,8 +89,14 @@ export function CicloEstanqueDetalle() {
     }
   };
 
+  const formatChartDate = (dateStr: string): string => {
+    const [year, month, day] = dateStr.split('-');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${day} ${months[parseInt(month) - 1]} ${year}`;
+  };
+
   const chartData = ceBiometrias.map(b => ({
-    fecha: b.fecha.slice(5), // MM-DD
+    fecha: formatChartDate(b.fecha),
     peso_prom: b.peso_promedio_g,
   }));
 
@@ -105,7 +111,7 @@ export function CicloEstanqueDetalle() {
       {/* Back */}
       <button
         onClick={() => ciclo ? navigate(`/ciclos/${ciclo.id}`) : navigate('/ciclos')}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
         Volver al detalle del ciclo
@@ -154,7 +160,7 @@ export function CicloEstanqueDetalle() {
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <Tooltip
                 contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                formatter={(val: number) => [`${val} g`, 'Peso prom.']}
+                formatter={(val: number) => [`${val} g`, 'Peso promedio']}
               />
               <Line
                 type="monotone"
@@ -179,7 +185,7 @@ export function CicloEstanqueDetalle() {
           <div className="flex gap-2">
             <button
               onClick={() => navigate(`/biometrias/nuevo?ceId=${ce.id}`)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm hover:opacity-90 transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-white text-sm hover:opacity-90 transition-all"
               style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
             >
               <Plus className="h-4 w-4" /> Registrar biometría
@@ -187,7 +193,7 @@ export function CicloEstanqueDetalle() {
             {ce.estado === 'activo' && (
               <button
                 onClick={() => setFinalizarModal(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm hover:opacity-90 transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-white text-sm hover:opacity-90 transition-all"
                 style={{ backgroundColor: '#059669', fontWeight: 500 }}
               >
                 <CheckCircle className="h-4 w-4" /> Finalizar
@@ -200,7 +206,7 @@ export function CicloEstanqueDetalle() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['Fecha', 'N° Muestra', 'Peso total (g)', 'Peso prom. (g)', 'Observaciones', 'Registrado por', 'Acciones'].map(h => (
+                {['Fecha', 'N° Muestra', 'Peso total (g)', 'Peso prom. (g)', 'Registrado por', 'Acciones'].map(h => (
                   <th key={h} className="text-left px-5 py-3 text-slate-500 text-xs" style={{ fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
@@ -214,14 +220,13 @@ export function CicloEstanqueDetalle() {
                   <td className="px-5 py-3.5">
                     <span style={{ color: '#0e7490', fontWeight: 600 }}>{b.peso_promedio_g.toFixed(1)}</span>
                   </td>
-                  <td className="px-5 py-3.5 text-slate-500 max-w-xs truncate">{b.observaciones || <span className="text-slate-300">—</span>}</td>
                   <td className="px-5 py-3.5 text-slate-600 text-xs">{getUsuario(b.registrado_por_id)}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
+                      <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg text-slate-400 cursor-pointer hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button onClick={() => setDeleteId(b.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                      <button onClick={() => setDeleteId(b.id)} className="p-1.5 rounded-lg text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

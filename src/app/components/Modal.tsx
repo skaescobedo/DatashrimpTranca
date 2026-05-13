@@ -32,7 +32,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
           <h2 className="text-slate-800" style={{ fontWeight: 600, fontSize: '1.05rem' }}>{title}</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 rounded-lg p-1 hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 rounded-lg p-1 cursor-pointer hover:bg-slate-100 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>

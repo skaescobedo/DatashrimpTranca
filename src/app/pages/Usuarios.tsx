@@ -102,7 +102,7 @@ export function Usuarios() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm transition-all hover:opacity-90"
+          className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm transition-all hover:opacity-90"
           style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
         >
           <Plus className="h-4 w-4" /> Nuevo usuario
@@ -168,16 +168,16 @@ export function Usuarios() {
                   <td className="px-5 py-3.5 text-slate-500">{u.creado_en}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openView(u)} className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors" title="Ver">
+                      <button onClick={() => openView(u)} className="p-1.5 cursor-pointer rounded-lg text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors" title="Ver">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button onClick={() => openEdit(u)} className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
+                      <button onClick={() => openEdit(u)} className="p-1.5 cursor-pointer rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => confirmDelete(u.id)}
                         disabled={u.id === currentUser?.id}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1.5 cursor-pointer rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Eliminar"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -248,14 +248,14 @@ export function Usuarios() {
             <button
               onClick={closeModal}
               disabled={actionLoading}
-              className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              className="flex-1 py-2.5 cursor-pointer rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
               disabled={actionLoading}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm cursor-pointer text-white transition-colors"
               style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
             >
               {actionLoading ? 'Guardando...' : modal.mode === 'create' ? 'Crear usuario' : 'Guardar cambios'}
@@ -300,13 +300,13 @@ export function Usuarios() {
         <div className="flex gap-3">
           <button
             onClick={() => setDeleteId(null)}
-            className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50"
+            className="flex-1 py-2.5 cursor-pointer rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleDelete}
-            className="flex-1 py-2.5 rounded-xl text-sm text-white"
+            className="flex-1 py-2.5 cursor-pointer rounded-xl text-sm text-white"
             style={{ backgroundColor: '#dc2626', fontWeight: 500 }}
           >
             Eliminar
