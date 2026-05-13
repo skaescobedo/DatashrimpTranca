@@ -79,7 +79,7 @@ export function CicloDetalle() {
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between" style={{ backgroundColor: '#f0f9ff' }}>
           <div>
             <h1 className="text-slate-800" style={{ fontWeight: 700, fontSize: '1.3rem' }}>{ciclo.nombre}</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Detalle del ciclo de producción</p>
+            <p className="text-slate-600 text-sm mt-0.5">Detalle del ciclo de producción</p>
           </div>
           <Badge status={ciclo.estado} />
         </div>

@@ -11,6 +11,7 @@ export function RegistroBiometria() {
   const { biometrias, cicloEstanques, ciclos, estanques, addBiometria, updateBiometria } = useApp();
 
   const defaultCE = searchParams.get('ceId') || '';
+  const backToCicloEstanqueId = searchParams.get('ceId');
   const editId = biometriaId ? Number(biometriaId) : null;
   const biometriaEdit = editId !== null ? biometrias.find(b => b.id === editId) : null;
   const isEditing = Boolean(biometriaEdit);
@@ -156,11 +157,11 @@ export function RegistroBiometria() {
     <div className="space-y-5 max-w-4xl mx-auto">
       {/* Back */}
       <button
-        onClick={() => navigate('/biometrias')}
+        onClick={() => backToCicloEstanqueId ? navigate(`/ciclo-estanque/${backToCicloEstanqueId}`) : navigate('/biometrias')}
         className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" />
-        Volver a biometrías
+        {backToCicloEstanqueId ? 'Volver a ciclo-estanque' : 'Volver a biometrías'}
       </button>
 
       <div>
@@ -321,17 +322,10 @@ export function RegistroBiometria() {
             </div>
           )}
 
-          <div className="md:col-span-2 flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => navigate('/biometrias')}
-              className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
+          <div className="md:col-span-2 flex justify-center pt-2">
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl text-sm text-white transition-colors cursor-pointer"
+              className="w-full max-w-xs py-2.5 rounded-xl text-sm text-white transition-colors cursor-pointer"
               style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
             >
               Guardar biometría
