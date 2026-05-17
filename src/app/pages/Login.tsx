@@ -48,7 +48,7 @@ export function Login() {
           >
             <Fish className="h-10 w-10 text-white" />
           </div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>DataShrimp</h1>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Shrimplytics</h1>
           <p className="mt-3 text-sky-200" style={{ fontSize: '1.05rem' }}>
             Sistema de control y administración para el cultivo de camarón.
           </p>
@@ -83,7 +83,7 @@ export function Login() {
             >
               <Fish className="h-6 w-6 text-white" />
             </div>
-            <span className="text-white" style={{ fontWeight: 700, fontSize: '1.2rem' }}>DataShrimp</span>
+            <span className="text-white" style={{ fontWeight: 700, fontSize: '1.2rem' }}>Shrimplytics</span>
           </div>
 
           <div className="bg-white rounded-3xl p-8 shadow-2xl">

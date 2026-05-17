@@ -58,7 +58,7 @@ export function Layout() {
             <Fish className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-white text-sm" style={{ fontWeight: 700, letterSpacing: '0.02em' }}>DataShrimp</p>
+            <p className="text-white text-sm" style={{ fontWeight: 700, letterSpacing: '0.02em' }}>Shrimplytics</p>
             <p className="text-xs" style={{ color: '#7dd3fc' }}>Control de Cultivo</p>
           </div>
           <button
