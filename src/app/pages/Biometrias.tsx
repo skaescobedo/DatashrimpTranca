@@ -1,18 +1,35 @@
 import React, { useState } from 'react';
-import { Plus, Eye, Pencil, Trash2, Filter } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Filter, Sheet } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useNotification } from '../components/ui/use-notification';
 import { useApp } from '../context/AppContext';
 import { Modal } from '../components/Modal';
+import { importExcelBiometrias } from '../../services/biometriaService';
 
 export function Biometrias() {
-  const { biometrias, cicloEstanques, ciclos, estanques, usuarios, deleteBiometria, dataLoading, dataError } = useApp();
+  const { biometrias, cicloEstanques, ciclos, estanques, usuarios, deleteBiometria, dataLoading, dataError, refreshBiometrias } = useApp();
   const navigate = useNavigate();
-
+  const [modal, setModal] = useState<{ open: boolean; mode: 'view' | 'edit'; item: any | null }>({ 
+    open: false, 
+    mode: 'view', 
+    item: null 
+  });
+  const { success, error } = useNotification();
+  const openView = (biometria: any) => {
+    setModal({ open: true, mode: 'view', item: biometria });
+  };
+  const closeModal = () => setModal(m => ({ ...m, open: false }));
   const [filterCiclo, setFilterCiclo] = useState('todos');
   const [filterEstanque, setFilterEstanque] = useState('todos');
   const [filterFecha, setFilterFecha] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [viewId, setViewId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
+  const [importModal, setImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importCicloEstanque, setImportCicloEstanque] = useState('');
+  const [importError, setImportError] = useState('');
+  const [importLoading, setImportLoading] = useState(false);
 
   const getCEInfo = (ceId: number) => {
     const ce = cicloEstanques.find(x => x.id === ceId);
@@ -46,13 +63,69 @@ export function Biometrias() {
       try {
         await deleteBiometria(deleteId);
         setDeleteId(null);
-      } catch (error) {
-        setActionError(error instanceof Error ? error.message : 'No fue posible eliminar biometría.');
+        success('Éxito', 'Biometría eliminada correctamente');
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'No fue posible eliminar biometría.';
+        error('Error', errorMsg);
+        setActionError(errorMsg);
       }
     }
   };
 
   const getCEById = (ceId: number) => cicloEstanques.find(ce => ce.id === ceId);
+
+  const handleFileSelect = (file: File) => {
+    if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel') {
+      setImportFile(file);
+      setImportError('');
+    } else {
+      setImportError('Por favor selecciona un archivo Excel válido (.xlsx o .xls)');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
+  const handleImport = async () => {
+    setImportError('');
+    if (!importFile) {
+      setImportError('Por favor selecciona un archivo');
+      return;
+    }
+    setImportLoading(true);
+    try {
+      console.log('Importando archivo:', importFile.name, 'para ciclo-estanque:', importCicloEstanque);
+      await importExcelBiometrias(importFile);
+      setImportModal(false);
+      setImportFile(null);
+      setImportCicloEstanque('');
+      success('Importación completada', `Se importaron los registros del archivo ${importFile.name}`);
+      await refreshBiometrias();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'No fue posible importar el archivo';
+      error('Error en la importación', errorMsg);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const closeImportModal = () => {
+    setImportModal(false);
+    setImportFile(null);
+    setImportCicloEstanque('');
+    setImportError('');
+  };
 
   return (
     <div className="space-y-5">
@@ -61,13 +134,22 @@ export function Biometrias() {
           <h1 className="text-slate-800" style={{ fontWeight: 700, fontSize: '1.5rem' }}>Biometrías</h1>
           <p className="text-slate-500 text-sm mt-0.5">{biometrias.length} registros totales</p>
         </div>
-        <button
-          onClick={() => navigate('/biometrias/nuevo')}
-          className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm hover:opacity-90 transition-all"
-          style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
-        >
-          <Plus className="h-4 w-4" /> Registrar biometría
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setImportModal(true)}
+            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm hover:opacity-90 transition-all"
+            style={{ backgroundColor: 'white', fontWeight: 500, color: '#0e7490', border: '1px solid #0e7490' }}
+          >
+            <Sheet className="h-4 w-4" /> Importar excel
+          </button>
+          <button
+            onClick={() => navigate('/biometrias/nuevo')}
+            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm hover:opacity-90 transition-all"
+            style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
+          >
+            <Plus className="h-4 w-4" /> Registrar biometría
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -178,6 +260,65 @@ export function Biometrias() {
         <div className="flex gap-3">
           <button onClick={() => setDeleteId(null)} className="flex-1 cursor-pointer py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
           <button onClick={handleDelete} className="flex-1 cursor-pointer py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#dc2626', fontWeight: 500 }}>Eliminar</button>
+        </div>
+      </Modal>
+
+      {/* Import Excel Modal */}
+      <Modal open={importModal} onClose={closeImportModal} title="Importar biometrías desde Excel">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>Archivo Excel</label>
+            <div
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-cyan-400 hover:bg-cyan-50/30 transition-colors"
+            >
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => {const file = e.target.files?.[0] ?? null;
+                  if (file) handleFileSelect(file);
+                }} className="hidden"
+                id="excel-file-input"
+              />
+              <label htmlFor="excel-file-input" className="cursor-pointer block">
+                <div className="flex flex-col items-center gap-2">
+                  <Sheet className="h-8 w-8 text-slate-400" />
+                  {importFile ? (
+                    <>
+                      <p className="text-sm text-slate-800" style={{ fontWeight: 600 }}>{importFile.name}</p>
+                      <p className="text-xs text-slate-500">Haz clic para cambiar el archivo</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-slate-700" style={{ fontWeight: 500 }}>Arrastra tu archivo Excel aquí</p>
+                      <p className="text-xs text-slate-500">o haz clic para seleccionar</p>
+                    </>
+                  )}
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {importError && <p className="text-sm text-red-600">{importError}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={closeImportModal}
+              disabled={importLoading}
+              className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 cursor-pointer hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleImport}
+              disabled={importLoading}
+              className="flex-1 py-2.5 rounded-xl text-sm cursor-pointer text-white"
+              style={{ backgroundColor: '#0e7490', fontWeight: 500 }}
+            >
+              {importLoading ? 'Importando...' : 'Importar'}
+            </button>
+          </div>
         </div>
       </Modal>
     </div>

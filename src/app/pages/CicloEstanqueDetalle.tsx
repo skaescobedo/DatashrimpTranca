@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Plus, Trash2, Pencil, CheckCircle, CalendarDays, Droplets, Weight, Hash, Calculator, Wind } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil, CheckCircle, CalendarDays, Droplets, Weight, Hash, Calculator, Wind, Eye, Loader } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { useApp } from '../context/AppContext';
 import { Modal } from '../components/Modal';
 import { Badge } from '../components/Badge';
+import { predictBiometria, type BiometriaPredictionResponse } from '../../services/biometriaService';
 import type { Biometria } from '../types';
 
 export function CicloEstanqueDetalle() {
@@ -25,6 +26,10 @@ export function CicloEstanqueDetalle() {
   const [finalizarModal, setFinalizarModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editModal, setEditModal] = useState<{ open: boolean; item: Biometria | null }>({ open: false, item: null });
+  const [showPrediction, setShowPrediction] = useState(false);
+  const [predictionData, setPredictionData] = useState<BiometriaPredictionResponse | null>(null);
+  const [loadingPrediction, setLoadingPrediction] = useState(false);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     fecha: '',
     numero_muestra: '',
@@ -111,16 +116,57 @@ export function CicloEstanqueDetalle() {
     }
   };
 
+  // Cargar predicciones del servidor cuando se activa showPrediction
+  useEffect(() => {
+    if (!showPrediction || !ce) return;
+    
+    const loadPredictions = async () => {
+      try {
+        setLoadingPrediction(true);
+        setPredictionError(null);
+        const data = await predictBiometria(id, 4);
+        setPredictionData(data);
+      } catch (error) {
+        setPredictionError(error instanceof Error ? error.message : 'Error al cargar predicciones');
+        setPredictionData(null);
+      } finally {
+        setLoadingPrediction(false);
+      }
+    };
+
+    loadPredictions();
+  }, [showPrediction, id, ce]);
+
   const formatChartDate = (dateStr: string): string => {
     const [year, month, day] = dateStr.split('-');
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${day} ${months[parseInt(month) - 1]} ${year}`;
   };
 
-  const chartData = ceBiometrias.map(b => ({
-    fecha: formatChartDate(b.fecha),
-    peso_prom: b.peso_promedio_g,
-  }));
+  // Construir datos para la gráfica: datos reales + predicciones del servidor
+  const chartData = [
+    ...ceBiometrias.map(b => ({
+      fecha: formatChartDate(b.fecha),
+      peso_prom: b.peso_promedio_g,
+      peso_prom_pred: null,
+    })),
+    // Si hay predicciones del servidor, agregarlas
+    ...(showPrediction && predictionData?.predicciones ? [
+      // Compartir el último punto real para conectar las líneas
+      ...(ceBiometrias.length > 0 ? [{
+        fecha: formatChartDate(ceBiometrias[ceBiometrias.length - 1].fecha),
+        peso_prom: ceBiometrias[ceBiometrias.length - 1].peso_promedio_g,
+        peso_prom_pred: ceBiometrias[ceBiometrias.length - 1].peso_promedio_g,
+      }] : []),
+      // Agregar predicciones del servidor
+      ...predictionData.predicciones.map(p => ({
+        fecha: formatChartDate(p.fecha),
+        peso_prom: null,
+        peso_prom_pred: p.peso_promedio_predicho,
+        confianza: p.confianza,
+      }))
+    ] : []),
+  ];
 
   const lastBio = ceBiometrias[ceBiometrias.length - 1];
   const firstBio = ceBiometrias[0];
@@ -173,8 +219,45 @@ export function CicloEstanqueDetalle() {
       {/* Chart */}
       {chartData.length > 1 && (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <h2 className="text-slate-800 mb-1" style={{ fontWeight: 600 }}>Tendencia de peso promedio</h2>
-          <p className="text-xs text-slate-400 mb-4">Evolución del peso promedio (g) por fecha de muestreo</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-slate-800 mb-1" style={{ fontWeight: 600 }}>Tendencia de peso promedio</h2>
+              <p className="text-xs text-slate-400 mb-4">Evolución del peso promedio (g) por fecha de muestreo</p>
+              {showPrediction && predictionData && (
+                <div className="text-xs text-slate-500 flex gap-4 mt-2">
+                  <span><strong>R² Modelo:</strong> {(predictionData.r2_modelo * 100).toFixed(1)}%</span>
+                  <span><strong>Datos de entrenamiento:</strong> {predictionData.cantidad_datos_entrenamiento}</span>
+                </div>
+              )}
+            </div>
+            <div>
+              <button 
+                onClick={() => setShowPrediction(!showPrediction)}
+                disabled={loadingPrediction}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-white text-sm hover:opacity-90 transition-all disabled:opacity-50" 
+                style={{ backgroundColor: showPrediction ? '#f59e0b' : '#0e7490', fontWeight: 500 }}
+              >
+                {loadingPrediction ? (
+                  <>
+                    <Loader className="h-4 w-4 animate-spin" />
+                    Cargando...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    {showPrediction ? 'Ocultar predicción' : 'Mostrar predicción'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {predictionError && showPrediction && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              Error: {predictionError}
+            </div>
+          )}
+
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -182,18 +265,44 @@ export function CicloEstanqueDetalle() {
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <Tooltip
                 contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                formatter={(val: number) => [`${val} g`, 'Peso promedio']}
+                formatter={(val: number, name: string) => {
+                  if (name === 'peso_prom') return [`${val.toFixed(1)} g`, 'Peso Real'];
+                  if (name === 'peso_prom_pred') return [`${val.toFixed(1)} g`, 'Predicción'];
+                  return [val, name];
+                }}
               />
               <Line
                 type="monotone"
                 dataKey="peso_prom"
                 stroke="#0e7490"
                 strokeWidth={2.5}
-                dot={{ fill: '#0e7490', r: 4 }}
-                activeDot={{ r: 6 }}
+                dot={{ fill: '#0e7490', r: 6 }}
+                activeDot={{ r: 7 }}
+                connectNulls={true}
+                name="Peso Promedio Real (gr)"
               />
+              {showPrediction && predictionData && (
+                <Line
+                  type="monotone"
+                  dataKey="peso_prom_pred"
+                  stroke="#f59e0b"
+                  strokeWidth={2.5}
+                  strokeDasharray="5 5"
+                  dot={{ fill: '#f59e0b', r: 6, stroke: '#f59e0b', strokeWidth: 1 }}
+                  activeDot={{ r: 8 }}
+                  connectNulls={true}
+                  name="Predicción (gr)"
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
+
+          {showPrediction && predictionData && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+              <p><strong>Línea azul (sólida):</strong> Datos reales de biometrías registradas</p>
+              <p><strong>Línea naranja (punteada):</strong> Predicciones del modelo en los próximos días</p>
+            </div>
+          )}
         </div>
       )}
 
