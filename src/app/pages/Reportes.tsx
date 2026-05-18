@@ -275,7 +275,7 @@ export default function Reportes() {
                                     <BarChart data={ranking} layout="vertical">
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis type="number" />
-                                        <YAxis dataKey="estanque" type="category" width={80} />
+                                        <YAxis dataKey="estanque" type="category" width={120} />
                                         <Tooltip formatter={formatWeight} />
                                         <Legend />
                                         <Bar dataKey="peso_promedio" fill="#82ca9d" name="Peso (g)" />
