@@ -24,7 +24,8 @@ export function RegistroBiometria() {
   };
 
   const [form, setForm] = useState({
-    ciclo_estanque_id: defaultCE,
+    ciclo_id: '',
+    estanque_id: '',
     fecha: getLocalDate(),
     numero_muestra: '',
     peso_total_muestra_g: '',
@@ -38,8 +39,10 @@ export function RegistroBiometria() {
 
   useEffect(() => {
     if (!biometriaEdit) return;
+    const ceEditando = cicloEstanques.find(ce => ce.id === biometriaEdit.ciclo_estanque_id);
     setForm({
-      ciclo_estanque_id: String(biometriaEdit.ciclo_estanque_id),
+      ciclo_id: ceEditando?.ciclo_id ? String(ceEditando.ciclo_id) : '',
+      estanque_id: ceEditando?.estanque_id ? String(ceEditando.estanque_id) : '',
       fecha: biometriaEdit.fecha,
       numero_muestra: String(biometriaEdit.numero_muestra),
       peso_total_muestra_g: String(biometriaEdit.peso_total_muestra_g),
@@ -48,7 +51,7 @@ export function RegistroBiometria() {
       agua_salinidad: String(biometriaEdit.agua_salinidad),
       agua_oxigeno: String(biometriaEdit.agua_oxigeno),
     });
-  }, [biometriaEdit]);
+  }, [biometriaEdit, cicloEstanques]);
 
   // Only active ciclo-estanques
   const ceOptions = cicloEstanques.map(ce => {
@@ -57,8 +60,31 @@ export function RegistroBiometria() {
     return { ce, label: `${ciclo?.nombre || '?'} — ${estanque?.nombre || '?'}` };
   });
 
-  const ceSeleccionadoEnForm = cicloEstanques.find(ce => ce.id === Number(form.ciclo_estanque_id));
-  const cicloDelCE = ceSeleccionadoEnForm ? ciclos.find(c => c.id === ceSeleccionadoEnForm.ciclo_id) : null;
+  const estanquesFiltrados = form.ciclo_id 
+    ? cicloEstanques
+        .filter(ce => ce.ciclo_id === Number(form.ciclo_id))
+        .map(ce => estanques.find(e => e.id === ce.estanque_id))
+        .filter((e, idx, arr) => e && arr.findIndex(x => x?.id === e.id) === idx) // Eliminar duplicados
+    : [];
+
+  const ciclo_estanque_id_actual = form.ciclo_id && form.estanque_id
+    ? cicloEstanques.find(ce => ce.ciclo_id === Number(form.ciclo_id) && ce.estanque_id === Number(form.estanque_id))?.id
+    : null;
+
+  const cicloDelCE = form.ciclo_id ? ciclos.find(c => c.id === Number(form.ciclo_id)) : null;
+
+  useEffect(() => {
+    if (defaultCE && !isEditing) {
+      const ceDefault = cicloEstanques.find(ce => ce.id === Number(defaultCE));
+      if (ceDefault) {
+        setForm(f => ({
+          ...f,
+          ciclo_id: String(ceDefault.ciclo_id),
+          estanque_id: String(ceDefault.estanque_id),
+        }));
+      }
+    }
+  }, [defaultCE, isEditing, cicloEstanques]);
 
   const pesoProm = useMemo(() => {
     const n = Number(form.numero_muestra);
@@ -71,7 +97,7 @@ export function RegistroBiometria() {
     e.preventDefault();
     setError('');
 
-    if (!form.ciclo_estanque_id || !form.fecha || !form.numero_muestra || !form.peso_total_muestra_g) {
+    if (!form.ciclo_id || !form.estanque_id || !form.fecha || !form.numero_muestra || !form.peso_total_muestra_g) {
       setError('Por favor completa todos los campos requeridos.');
       return;
     }
@@ -93,8 +119,15 @@ export function RegistroBiometria() {
       return;
     }
 
-    if (cicloDelCE) {
-      const dateValidation = validateBiometriaDateRange(form.fecha, cicloDelCE.fecha_inicio, cicloDelCE.fecha_fin);
+    if (!ciclo_estanque_id_actual) {
+      setError('No se encontró la combinación ciclo-estanque.');
+      return;
+    }
+
+    // Validar rango de fechas
+    const cicloSeleccionado = ciclos.find(c => c.id === Number(form.ciclo_id));
+    if (cicloSeleccionado) {
+      const dateValidation = validateBiometriaDateRange(form.fecha, cicloSeleccionado.fecha_inicio, cicloSeleccionado.fecha_fin);
       if (!dateValidation.valid) {
         setError(dateValidation.error);
         return;
@@ -103,7 +136,7 @@ export function RegistroBiometria() {
 
     try {
       const payload = {
-        ciclo_estanque_id: Number(form.ciclo_estanque_id),
+        ciclo_estanque_id: ciclo_estanque_id_actual,
         fecha: form.fecha,
         numero_muestra: Number(form.numero_muestra),
         peso_total_muestra_g: Number(form.peso_total_muestra_g),
@@ -124,7 +157,9 @@ export function RegistroBiometria() {
     }
   };
 
-  const ceSeleccionado = cicloEstanques.find(ce => ce.id === Number(form.ciclo_estanque_id));
+  const ceSeleccionado = ciclo_estanque_id_actual 
+    ? cicloEstanques.find(ce => ce.id === ciclo_estanque_id_actual)
+    : null;
 
   if (success) {
     return (
@@ -154,7 +189,7 @@ export function RegistroBiometria() {
           <button
             onClick={() => {
               setSuccess(false);
-              setForm(f => ({ ...f, numero_muestra: '', peso_total_muestra_g: '', observaciones: '', agua_temperatura: '', agua_salinidad: '', agua_oxigeno: '' }));
+              setForm(f => ({ ...f, numero_muestra: '', peso_total_muestra_g: '', observaciones: '', agua_temperatura: '', agua_salinidad: '', agua_oxigeno: '', estanque_id: '' }));
             }}
             className="px-5 py-2.5 rounded-xl bg-white text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
           >
@@ -186,16 +221,35 @@ export function RegistroBiometria() {
           <div className="space-y-5">
             <div>
               <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
-                Ciclo - Estanque <span className="text-red-400">*</span>
+                Ciclo <span className="text-red-400">*</span>
               </label>
               <select
-                value={form.ciclo_estanque_id}
-                onChange={e => setForm(f => ({ ...f, ciclo_estanque_id: e.target.value }))}
+                value={form.ciclo_id}
+                onChange={e => setForm(f => ({ ...f, ciclo_id: e.target.value, estanque_id: '' }))}
                 className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
               >
-                <option value="">Seleccionar ciclo-estanque...</option>
-                {ceOptions.map(({ ce, label }) => (
-                  <option key={ce.id} value={ce.id}>#{ce.id} — {label}</option>
+                <option value="">Seleccionar ciclo...</option>
+                {[...ciclos].sort((a, b) => b.fecha_inicio.localeCompare(a.fecha_inicio)).map(ciclo => (
+                  <option key={ciclo.id} value={ciclo.id}>
+                    {ciclo.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+                Estanque <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={form.estanque_id}
+                onChange={e => setForm(f => ({ ...f, estanque_id: e.target.value }))}
+                disabled={!form.ciclo_id}
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Seleccionar estanque...</option>
+                {estanquesFiltrados.map(estanque => (
+                  estanque && <option key={estanque.id} value={estanque.id}>  {estanque.nombre}</option>
                 ))}
               </select>
             </div>
@@ -239,7 +293,12 @@ export function RegistroBiometria() {
               />
             </div>
 
-                        <div>
+            
+
+          </div>
+
+          <div className="space-y-5">
+            <div>
               <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
                 Peso total de muestra (g) <span className="text-red-400">*</span>
               </label>
@@ -253,11 +312,6 @@ export function RegistroBiometria() {
                 step={0.1}
               />
             </div>
-
-          </div>
-
-          <div className="space-y-5">
-
 
 
             <div className="hidden">
