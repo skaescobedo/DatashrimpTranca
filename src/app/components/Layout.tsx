@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate, Navigate } from 'react-router';
 import {
   LayoutDashboard, Users, Waves, RefreshCw, Activity,
-  LogOut, Menu, X, Fish, ChevronRight,
+  LogOut, Menu, X, Fish, ChevronRight, BarChart2,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -12,6 +12,7 @@ const navItems = [
   { to: '/estanques', icon: Waves, label: 'Estanques' },
   { to: '/ciclos', icon: RefreshCw, label: 'Ciclos' },
   { to: '/biometrias', icon: Activity, label: 'Biometrías' },
+  { to: '/reportes', icon: BarChart2, label: 'Reportes' },
 ];
 
 export function Layout() {

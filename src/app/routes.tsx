@@ -10,6 +10,7 @@ import { AsociarEstanque } from './pages/AsociarEstanque';
 import { Biometrias } from './pages/Biometrias';
 import { RegistroBiometria } from './pages/RegistroBiometria';
 import { CicloEstanqueDetalle } from './pages/CicloEstanqueDetalle';
+import Reportes from './pages/Reportes';
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: 'biometrias/nuevo', Component: RegistroBiometria },
       { path: 'biometrias/:biometriaId/editar', Component: RegistroBiometria },
       { path: 'ciclo-estanque/:ceId', Component: CicloEstanqueDetalle },
+      { path: 'reportes', Component: Reportes },
     ],
   },
 ]);
