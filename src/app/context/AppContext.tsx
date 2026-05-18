@@ -16,6 +16,7 @@ type AppContextType = {
   login: (correo: string, password: string) => Promise<boolean>;
   logout: () => void;
   refreshData: () => Promise<void>;
+  refreshBiometrias: () => Promise<void>;
   usuarios: Usuario[];
   addUsuario: (u: { nombre: string; correo: string; rol: string; password: string }) => Promise<void>;
   updateUsuario: (id: number, u: Partial<Usuario> & { password?: string }) => Promise<void>;
@@ -83,6 +84,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setDataError(getMessage(error));
     } finally {
       setDataLoading(false);
+    }
+  };
+
+  const refreshBiometrias = async () => {
+    if (!authService.hasToken()) return;
+    try {
+      const biometriasRes = await biometriaService.listBiometrias();
+      setBiometrias(biometriasRes);
+    } catch (error) {
+      console.error('Error al recargar biometrías:', error);
     }
   };
 
@@ -281,6 +292,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       refreshData,
+      refreshBiometrias,
       usuarios,
       addUsuario,
       updateUsuario,

@@ -1,3 +1,24 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* Sonner Toast Notifications */
+.toaster-success,
+.toaster-success * {
+  color: #065f46 !important;
+}
+
+.toaster-error,
+.toaster-error * {
+  color: #7f1d1d !important;
+}
+
+.toaster-info,
+.toaster-info * {
+  color: #1e3a8a !important;
+}
+
+.toaster-warning,
+.toaster-warning * {
+  color: #78350f !important;
+}
