@@ -32,6 +32,18 @@ type ReportType = 'general' | 'ranking' | 'relations' | 'compare';
 
 const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#387908', '#e6194b', '#3cb44b', '#ffe119', '#f58231', '#911eb4'];
 
+const formatChartDate = (value: string) => {
+    // Agregar T00:00:00 para forzar interpretación LOCAL en vez de UTC
+    const date = new Date(value + 'T00:00:00');
+    if (Number.isNaN(date.getTime())) return value;
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+
+    return `${day}/${month}/${year}`;
+};
+
 export default function Reportes() {
     const { ciclos, estanques, cicloEstanques } = useApp();
 
@@ -138,7 +150,7 @@ export default function Reportes() {
                 .then((res) => setCompareData(res))
                 .catch(console.error);
         }
-    }, [reportType, currentCicloEstanque, selectedCiclo]);
+    }, [reportType, currentCicloEstanque, selectedCiclo, selectedEstanque]);
 
     // Helper options
     const estanquesOptions = useMemo(() => {
@@ -172,7 +184,7 @@ export default function Reportes() {
                             className="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
                         >
                             <option value="general">Reporte general de crecimiento</option>
-                            <option value="ranking">Ranking de estanques</option>
+                            <option value="ranking">Ranking de estanques actual</option>
                             <option value="relations">Crecimiento vs variables de agua</option>
                             <option value="compare">Comparativa entre estanques</option>
                         </select>
@@ -224,9 +236,9 @@ export default function Reportes() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={generalGrowth}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="fecha" />
+                                        <XAxis dataKey="fecha" tickFormatter={formatChartDate} />
                                         <YAxis />
-                                        <Tooltip />
+                                        <Tooltip labelFormatter={formatChartDate} />
                                         <Legend />
                                         <Line type="monotone" dataKey="peso_promedio" stroke="#8884d8" name="Peso (g)" strokeWidth={3} />
                                     </LineChart>
@@ -274,10 +286,10 @@ export default function Reportes() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={relations}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="fecha" />
+                                        <XAxis dataKey="fecha" tickFormatter={formatChartDate} />
                                         <YAxis yAxisId="left" />
                                         <YAxis yAxisId="right" orientation="right" />
-                                        <Tooltip />
+                                        <Tooltip labelFormatter={formatChartDate} />
                                         <Legend />
                                         <Line yAxisId="left" type="monotone" dataKey="peso" stroke="#8884d8" name="Peso (g)" strokeWidth={3} />
                                         <Line yAxisId="right" type="monotone" dataKey="temp" stroke="#ff7300" name="Temp (°C)" strokeWidth={3} />
@@ -303,9 +315,9 @@ export default function Reportes() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={compareData}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="fecha" />
+                                        <XAxis dataKey="fecha" tickFormatter={formatChartDate} />
                                         <YAxis />
-                                        <Tooltip />
+                                        <Tooltip labelFormatter={formatChartDate} />
                                         <Legend />
                                         {estanquesInCompare.map((estanqueName, index) => (
                                             <Line
