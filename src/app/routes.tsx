@@ -30,6 +30,7 @@ export const router = createBrowserRouter([
       { path: 'ciclos/:cicloId/asociar', Component: AsociarEstanque },
       { path: 'biometrias', Component: Biometrias },
       { path: 'biometrias/nuevo', Component: RegistroBiometria },
+      { path: 'biometrias/:biometriaId', Component: RegistroBiometria },
       { path: 'biometrias/:biometriaId/editar', Component: RegistroBiometria },
       { path: 'ciclo-estanque/:ceId', Component: CicloEstanqueDetalle },
       { path: 'reportes', Component: Reportes },
