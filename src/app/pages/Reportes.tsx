@@ -44,6 +44,19 @@ const formatChartDate = (value: string) => {
     return `${day}/${month}/${year}`;
 };
 
+const formatWeight = (value: string | number) => `${Number(value).toFixed(2)} g`;
+
+const formatRelationValue = (value: string | number, name: string) => {
+    const formattedValue = Number(value).toFixed(2);
+
+    if (name === 'Peso (g)') return `${formattedValue} g`;
+    if (name === 'Temp (°C)') return `${formattedValue} °C`;
+    if (name === 'Oxígeno') return `${formattedValue} mg/L`;
+    if (name === 'Salinidad') return `${formattedValue} PPT`;
+
+    return formattedValue;
+};
+
 export default function Reportes() {
     const { ciclos, estanques, cicloEstanques } = useApp();
 
@@ -238,7 +251,7 @@ export default function Reportes() {
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="fecha" tickFormatter={formatChartDate} />
                                         <YAxis />
-                                        <Tooltip labelFormatter={formatChartDate} />
+                                        <Tooltip labelFormatter={formatChartDate} formatter={formatWeight} />
                                         <Legend />
                                         <Line type="monotone" dataKey="peso_promedio" stroke="#8884d8" name="Peso (g)" strokeWidth={3} />
                                     </LineChart>
@@ -263,7 +276,7 @@ export default function Reportes() {
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis type="number" />
                                         <YAxis dataKey="estanque" type="category" width={80} />
-                                        <Tooltip />
+                                        <Tooltip formatter={formatWeight} />
                                         <Legend />
                                         <Bar dataKey="peso_promedio" fill="#82ca9d" name="Peso (g)" />
                                     </BarChart>
@@ -289,7 +302,7 @@ export default function Reportes() {
                                         <XAxis dataKey="fecha" tickFormatter={formatChartDate} />
                                         <YAxis yAxisId="left" />
                                         <YAxis yAxisId="right" orientation="right" />
-                                        <Tooltip labelFormatter={formatChartDate} />
+                                        <Tooltip labelFormatter={formatChartDate} formatter={formatRelationValue} />
                                         <Legend />
                                         <Line yAxisId="left" type="monotone" dataKey="peso" stroke="#8884d8" name="Peso (g)" strokeWidth={3} />
                                         <Line yAxisId="right" type="monotone" dataKey="temp" stroke="#ff7300" name="Temp (°C)" strokeWidth={3} />
@@ -317,7 +330,7 @@ export default function Reportes() {
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="fecha" tickFormatter={formatChartDate} />
                                         <YAxis />
-                                        <Tooltip labelFormatter={formatChartDate} />
+                                        <Tooltip labelFormatter={formatChartDate} formatter={formatWeight} />
                                         <Legend />
                                         {estanquesInCompare.map((estanqueName, index) => (
                                             <Line
