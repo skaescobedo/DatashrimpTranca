@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { validateBiometriaDateRange } from '../components/ui/utils';
 
 export function AsociarEstanque() {
   const { cicloId } = useParams<{ cicloId: string }>();
@@ -48,6 +49,12 @@ export function AsociarEstanque() {
     }
     if (form.peso_inicial_promedio_g && Number.isNaN(Number(form.peso_inicial_promedio_g))) {
       setError('El peso_inicial_promedio_g debe ser numérico.');
+      return;
+    }
+
+    const dateValidation = validateBiometriaDateRange(form.fecha_siembra, ciclo.fecha_inicio, ciclo.fecha_fin, 'siembra');
+    if (!dateValidation.valid) {
+      setError(dateValidation.error);
       return;
     }
 
