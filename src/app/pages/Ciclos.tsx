@@ -49,6 +49,14 @@ export function Ciclos() {
       setFormError('El estado es requerido.');
       return;
     }
+    if (form.fecha_fin) {
+      const fechaInicio = new Date(form.fecha_inicio);
+      const fechaFin = new Date(form.fecha_fin);
+      if (fechaFin < fechaInicio) {
+        setFormError('La fecha de fin no puede ser anterior a la fecha de inicio.');
+        return;
+      }
+    }
     const data = {
       nombre: form.nombre,
       fecha_inicio: form.fecha_inicio,

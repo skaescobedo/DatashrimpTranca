@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { ArrowLeft, AlertCircle, CheckCircle2, Calculator, Droplet, Waves, Wind } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { validateBiometriaDateRange } from '../components/ui/utils';
 import type { Biometria } from '../types';
 
 export function RegistroBiometria() {
@@ -56,6 +57,9 @@ export function RegistroBiometria() {
     return { ce, label: `${ciclo?.nombre || '?'} — ${estanque?.nombre || '?'}` };
   });
 
+  const ceSeleccionadoEnForm = cicloEstanques.find(ce => ce.id === Number(form.ciclo_estanque_id));
+  const cicloDelCE = ceSeleccionadoEnForm ? ciclos.find(c => c.id === ceSeleccionadoEnForm.ciclo_id) : null;
+
   const pesoProm = useMemo(() => {
     const n = Number(form.numero_muestra);
     const t = Number(form.peso_total_muestra_g);
@@ -87,6 +91,14 @@ export function RegistroBiometria() {
     ) {
       setError('Los parámetros del agua deben ser mayores a 0.');
       return;
+    }
+
+    if (cicloDelCE) {
+      const dateValidation = validateBiometriaDateRange(form.fecha, cicloDelCE.fecha_inicio, cicloDelCE.fecha_fin);
+      if (!dateValidation.valid) {
+        setError(dateValidation.error);
+        return;
+      }
     }
 
     try {
