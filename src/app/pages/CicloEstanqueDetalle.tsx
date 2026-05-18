@@ -13,7 +13,7 @@ import type { Biometria } from '../types';
 export function CicloEstanqueDetalle() {
   const { ceId } = useParams<{ ceId: string }>();
   const navigate = useNavigate();
-  const { cicloEstanques, ciclos, estanques, biometrias, usuarios, deleteBiometria, finalizarCicloEstanque } = useApp();
+  const { cicloEstanques, ciclos, estanques, biometrias, usuarios, deleteBiometria, updateBiometria, finalizarCicloEstanque } = useApp();
 
   const id = Number(ceId);
   const ce = cicloEstanques.find(x => x.id === id);
@@ -52,8 +52,48 @@ export function CicloEstanqueDetalle() {
 
   const getUsuario = (id: number) => usuarios.find(u => u.id === id)?.nombre || '-';
 
-  const openEdit = (biometriaId: number) => {
-    navigate(`/biometrias/${biometriaId}?ceId=${id}`);
+  const openEdit = (b: Biometria) => {
+    setEditForm({
+      fecha: b.fecha,
+      numero_muestra: String(b.numero_muestra),
+      peso_total_muestra_g: String(b.peso_total_muestra_g),
+      observaciones: b.observaciones,
+      agua_temperatura: String(b.agua_temperatura),
+      agua_salinidad: String(b.agua_salinidad),
+      agua_oxigeno: String(b.agua_oxigeno),
+    });
+    setEditModal({ open: true, item: b });
+  };
+
+  const handleEditSave = async () => {
+    if (!editModal.item) return;
+    if (!editForm.fecha || Number(editForm.numero_muestra) <= 0 || Number(editForm.peso_total_muestra_g) <= 0) {
+      setActionError('Verifica fecha, número de muestra y peso total.');
+      return;
+    }
+    if (
+      Number(editForm.agua_temperatura) <= 0 ||
+      Number(editForm.agua_salinidad) <= 0 ||
+      Number(editForm.agua_oxigeno) <= 0
+    ) {
+      setActionError('Los parámetros del agua deben ser mayores a 0.');
+      return;
+    }
+    try {
+      await updateBiometria(editModal.item.id, {
+        fecha: editForm.fecha,
+        numero_muestra: Number(editForm.numero_muestra),
+        peso_total_muestra_g: Number(editForm.peso_total_muestra_g),
+        agua_temperatura: Number(editForm.agua_temperatura),
+        agua_salinidad: Number(editForm.agua_salinidad),
+        agua_oxigeno: Number(editForm.agua_oxigeno),
+        observaciones: editForm.observaciones,
+      });
+      setEditModal({ open: false, item: null });
+      setActionError('');
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'No fue posible actualizar la biometría.');
+    }
   };
 
   const handleDelete = async () => {
@@ -317,7 +357,7 @@ export function CicloEstanqueDetalle() {
                   <td className="px-5 py-3.5 text-slate-600 text-xs">{getUsuario(b.registrado_por_id)}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(b.id)} className="p-1.5 rounded-lg text-slate-400 cursor-pointer hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
+                      <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg text-slate-400 cursor-pointer hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button onClick={() => setDeleteId(b.id)} className="p-1.5 rounded-lg text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
@@ -344,6 +384,7 @@ export function CicloEstanqueDetalle() {
           </table>
         </div>
       </div>
+      {actionError && <div className="text-sm text-red-600">{actionError}</div>}
 
       {/* Finalizar modal */}
       <Modal open={finalizarModal} onClose={() => setFinalizarModal(false)} title="Finalizar ciclo-estanque" size="sm">
@@ -351,6 +392,132 @@ export function CicloEstanqueDetalle() {
         <div className="flex gap-3">
           <button onClick={() => setFinalizarModal(false)} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
           <button onClick={handleFinalizar} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#059669', fontWeight: 500 }}>Finalizar</button>
+        </div>
+      </Modal>
+
+      {/* Edit modal */}
+      <Modal open={editModal.open} onClose={() => setEditModal({ open: false, item: null })} title="Editar biometría">
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+              Fecha <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={editForm.fecha}
+              onChange={e => setEditForm(f => ({ ...f, fecha: e.target.value }))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+              Número de muestra <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              value={editForm.numero_muestra}
+              onChange={e => setEditForm(f => ({ ...f, numero_muestra: e.target.value }))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              min={1}
+            />
+          </div>
+
+          <div className="hidden">
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+              Observaciones <span className="text-slate-400">(opcional)</span>
+            </label>
+            <textarea
+              value={editForm.observaciones}
+              onChange={e => setEditForm(f => ({ ...f, observaciones: e.target.value }))}
+              rows={6}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800 resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+              Peso total de muestra (g) <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              value={editForm.peso_total_muestra_g}
+              onChange={e => setEditForm(f => ({ ...f, peso_total_muestra_g: e.target.value }))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              min={0}
+              step={0.1}
+            />
+          </div>
+
+          <div className="hidden">
+            <label className="text-sm text-slate-700 mb-1.5 flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <Calculator className="h-4 w-4 text-cyan-500" />
+              Peso promedio (g) — <span className="text-slate-400" style={{ fontWeight: 400 }}>calculado automáticamente</span>
+            </label>
+            <div
+              className="px-4 py-3 rounded-xl border text-sm"
+              style={{
+                backgroundColor: editForm.numero_muestra && Number(editForm.numero_muestra) > 0 ? '#ecfdf5' : '#f8fafc',
+                borderColor: editForm.numero_muestra && Number(editForm.numero_muestra) > 0 ? '#a7f3d0' : '#e2e8f0',
+                color: editForm.numero_muestra && Number(editForm.numero_muestra) > 0 ? '#065f46' : '#94a3b8',
+                fontWeight: 600,
+              }}
+            >
+              {editForm.numero_muestra && Number(editForm.numero_muestra) > 0
+                ? (Number(editForm.peso_total_muestra_g) / Number(editForm.numero_muestra)).toFixed(2)
+                : '—'} g
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+              Temperatura del Agua (C°) <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              value={editForm.agua_temperatura}
+              onChange={e => setEditForm(f => ({ ...f, agua_temperatura: e.target.value }))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              placeholder="28"
+              min={0}
+              step={0.01}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-700 mb-1.5" style={{ fontWeight: 500 }}>
+              Salinidad (PPT) <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              value={editForm.agua_salinidad}
+              onChange={e => setEditForm(f => ({ ...f, agua_salinidad: e.target.value }))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              placeholder="25"
+              min={0}
+              step={0.01}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-slate-700 mb-1.5 flex items-center gap-2" style={{ fontWeight: 500 }}>
+              Oxigeno Disuelto (mg/L) <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              value={editForm.agua_oxigeno}
+              onChange={e => setEditForm(f => ({ ...f, agua_oxigeno: e.target.value }))}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-300 text-slate-800"
+              placeholder="5.5"
+              min={0}
+              step={0.01}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setEditModal({ open: false, item: null })} className="flex-1 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-600 hover:bg-slate-50">Cancelar</button>
+            <button onClick={handleEditSave} className="flex-1 py-2.5 rounded-xl text-sm text-white" style={{ backgroundColor: '#0e7490', fontWeight: 500 }}>Guardar cambios</button>
+          </div>
         </div>
       </Modal>
 
